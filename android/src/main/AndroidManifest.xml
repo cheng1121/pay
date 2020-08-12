@@ -1,0 +1,32 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.pinto.pay">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application>
+        <activity
+            android:name=".WechatCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}"
+            android:theme="@style/wechat_kit.Theme.Transparent" />
+
+<!--  通过给WechatCallbackActivity设置别名来让微信的回调调用同一个activity      -->
+        <activity-alias
+            android:name="${applicationId}.wxapi.WXEntryActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:targetActivity=".WechatCallbackActivity"
+            android:taskAffinity="${applicationId}"
+            android:theme="@style/wechat_kit.Theme.Transparent" />
+
+        <activity-alias
+            android:name="${applicationId}.wxapi.WXPayEntryActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:targetActivity=".WechatCallbackActivity"
+            android:taskAffinity="${applicationId}"
+            android:theme="@style/wechat_kit.Theme.Transparent" />
+    </application>
+</manifest>
