@@ -27,6 +27,7 @@ class PayUtil {
   List<ProductDetails> _productDetails;
   bool _isAvailable = false;
   bool _isWechatInit = false;
+
   PayUtil.init() {
     if (Platform.isIOS) {
       _connection = InAppPurchaseConnection.instance;
@@ -237,7 +238,9 @@ class PayUtil {
     }
 
     ///未发现对应产品的id列表
-    notFoundIds(productDetailsResponse.notFoundIDs);
+    if (notFoundIds != null) {
+      notFoundIds(productDetailsResponse.notFoundIDs);
+    }
     _productDetails = productDetailsResponse.productDetails;
 
     ///返回产品列表
