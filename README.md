@@ -1,14 +1,8 @@
 # pay
 
-A new flutter plugin project.
+## v0.0.3
 
-## Getting Started
+- 更新in_app_purchase 插件到0.3.4+16版本
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+- WechatReceiver类中的onReceive方法中，resp添加判空
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.

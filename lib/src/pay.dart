@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:pay/pay_kit.dart';
 
 class Pay {
   Pay() {
@@ -17,25 +16,25 @@ class Pay {
 
   ///判断是否已安装支付宝
   Future<bool> isAlipayInstalled() async {
-    return (await _channel.invokeMethod('isAlipayInstalled')) as bool;
+    return await _channel.invokeMethod<bool>('isAlipayInstalled');
   }
 
   ///微信是否安装
   Future<bool> isWechatInstalled() async {
-    return (await _channel.invokeMethod('wechatInstalled')) as bool;
+    return await _channel.invokeMethod<bool>('wechatInstalled');
   }
 
   ///初始化微信sdk
   Future<void> wechatInit({@required String wechatAppId}) async {
     assert(wechatAppId != null && wechatAppId.isNotEmpty);
-    return await _channel
-        .invokeMethod('wechatInit', {'wechatAppId': wechatAppId});
+    return await _channel.invokeMethod(
+        'wechatInit', <String, dynamic>{'wechatAppId': wechatAppId});
   }
 
   Stream<PayResp> payResp() => _payRespStreamController.stream;
 
   void setOnPayResp(ValueSetter<PayResp> resp) {
-    this._onPayResp = resp;
+    _onPayResp = resp;
   }
 
   /// 参数说明：https://pay.weixin.qq.com/wiki/doc/api/app/app.php?chapter=9_12&index=2
@@ -55,8 +54,7 @@ class Pay {
     assert(nonceStr != null && nonceStr.isNotEmpty);
     assert(timeStamp != null && timeStamp.isNotEmpty);
     assert(sign != null && sign.isNotEmpty);
-
-    return _channel.invokeMethod('wechatPay', {
+    return _channel.invokeMethod('wechatPay', <String, dynamic>{
       'wechatAppId': appId,
       'wechatPartnerId': partnerId,
       'wechatPrepayId': prepayId,
@@ -74,26 +72,30 @@ class Pay {
 //      'result': '=======',
 //      'memo': '',
 //    }));
-    return _channel.invokeMethod(
-        'aliPay', {'orderInfo': orderInfo, 'isShowLoading': isShowLoading});
+
+    final Map<String, dynamic> map = <String, dynamic>{
+      'orderInfo': orderInfo,
+      'isShowLoading': isShowLoading
+    };
+    return _channel.invokeMethod('aliPay', map);
   }
 
   ///支付结果
   Future<dynamic> _handlerMethod(MethodCall call) async {
     switch (call.method) {
       case 'onAliPayResp':
-        String resultStatus = call.arguments['resultStatus'];
-        String result = call.arguments['result'];
-        String memo = call.arguments['memo'];
+        final String resultStatus = call.arguments['resultStatus'] as String;
+        final String result = call.arguments['result'] as String;
+        final String memo = call.arguments['memo'] as String;
 
-        final resp = PayResp.formAlipay(
+        final PayResp resp = PayResp.formAlipay(
             resultStatus: int.parse(resultStatus), result: result, memo: memo);
         _sendPayResp(resp);
         break;
       case 'onWechatPayResp':
-        int errorCode = call.arguments['errorCode'];
-        String errorMsg = call.arguments['errorMsg'];
-        String returnKey = call.arguments['returnKey'];
+        final int errorCode = call.arguments['errorCode'] as int;
+        final String errorMsg = call.arguments['errorMsg'] as String;
+        final String returnKey = call.arguments['returnKey'] as String;
         _sendPayResp(PayResp.fromWechat(
             resultStatus: errorCode, result: errorMsg, memo: returnKey));
         break;
@@ -101,7 +103,6 @@ class Pay {
   }
 
   void _sendPayResp(PayResp resp) {
-    print('send pay resp =================${resp.toMap()}');
     _payRespStreamController.add(resp);
     if (_onPayResp != null) {
       _onPayResp(resp);
@@ -110,6 +111,14 @@ class Pay {
 }
 
 class PayResp {
+  PayResp({@required this.resultStatus, this.result, this.memo});
+
+  PayResp.formAlipay(
+      {this.resultStatus, this.result, this.memo, this.type = 2});
+
+  PayResp.fromWechat(
+      {this.resultStatus, this.result, this.memo, this.type = 1});
+
   ///微信
   /// 0:成功
   /// -1：错误------可能的原因：签名错误、未注册APPID、项目设置APPID不正确、注册的APPID与设置的不匹配、其他异常等。
@@ -134,23 +143,18 @@ class PayResp {
   ///1：微信 2：支付宝
   int type;
 
-  PayResp({@required this.resultStatus, this.result, this.memo});
-  PayResp.formAlipay(
-      {this.resultStatus, this.result, this.memo, this.type = 2});
-  PayResp.fromWechat(
-      {this.resultStatus, this.result, this.memo, this.type = 1});
   // PayResp.fromWechat(Map<String, dynamic> map, {this.type = 1}) {
   //   this.resultStatus = map['errorCode'];
   //   this.result = map['errorMsg'];
   //   this.memo = map['returnKey'];
   // }
 
-  Map toMap() {
-    return {
-      'resultStatus': resultStatus,
+  Map<String, String> toMap() {
+    return <String, String>{
+      'resultStatus': resultStatus.toString(),
       'result': result,
       'memo': memo,
-      'type': type,
+      'type': type.toString(),
     };
   }
 }

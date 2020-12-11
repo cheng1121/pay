@@ -19,15 +19,6 @@ typedef OnIosPaySuccess = void Function(
 typedef OnIosPayError = void Function(String code, String error);
 
 class PayUtil {
-  InAppPurchaseConnection _connection;
-  Pay _pay;
-
-  ///应用内购监听
-  Stream<List<PurchaseDetails>> _purchaseUpdates;
-  List<ProductDetails> _productDetails;
-  bool _isAvailable = false;
-  bool _isWechatInit = false;
-
   PayUtil.init() {
     if (Platform.isIOS) {
       _connection = InAppPurchaseConnection.instance;
@@ -36,6 +27,15 @@ class PayUtil {
       _pay = Pay();
     }
   }
+
+  InAppPurchaseConnection _connection;
+  Pay _pay;
+
+  ///应用内购监听
+  Stream<List<PurchaseDetails>> _purchaseUpdates;
+  List<ProductDetails> _productDetails;
+  bool _isAvailable = false;
+  bool _isWechatInit = false;
 
   ///产品列表
   List<ProductDetails> get productDetails => _productDetails;
@@ -60,7 +60,7 @@ class PayUtil {
     OnIosPayError onIosError,
   }) {
     if (Platform.isAndroid) {
-      payUtil.payRespStream.listen((event) async {
+      payUtil.payRespStream.listen((PayResp event) async {
         // showLoading(context, false);
         if (event.type == 2 && event.resultStatus == 9000) {
           ///支付宝
@@ -75,8 +75,8 @@ class PayUtil {
         }
       });
     } else if (Platform.isIOS) {
-      payUtil.purchaseUpdates.listen((event) {
-        event.forEach((PurchaseDetails details) async {
+      payUtil.purchaseUpdates.listen((List<PurchaseDetails> event) {
+        for (final PurchaseDetails details in event) {
           if (details.status == PurchaseStatus.pending) {
             ///支付处理中
           } else if (details.status == PurchaseStatus.purchased) {
@@ -97,17 +97,17 @@ class PayUtil {
             payUtil.completePurchase(details);
             // showLoading(context, false);
           }
-        });
+        }
       });
     }
   }
 
-  void _init() async {
+  Future<void> _init() async {
     _purchaseUpdates = _connection.purchaseUpdatedStream;
     _isAvailable = await _connection.isAvailable();
   }
 
-  void pay({
+  Future<void> pay({
     @required PayChannel channel,
     @required PayParams params,
     VoidCallback payStart,
@@ -153,9 +153,9 @@ class PayUtil {
     if (payStart != null) {
       payStart();
     }
-    String productId = params.productId;
-    ProductDetails details = _productDetails.firstWhere(
-      (element) => element.id == productId,
+    final String productId = params.productId;
+    final ProductDetails details = _productDetails.firstWhere(
+      (ProductDetails element) => element.id == productId,
       orElse: () {
         _payError('ios支付失败，未找到该产品productId = $productId');
         return null;
@@ -210,7 +210,7 @@ class PayUtil {
     if (!_isAvailable) {
       _isAvailable = await _connection.isAvailable();
     }
-    final purchaseDetailsResp =
+    final QueryPurchaseDetailsResponse purchaseDetailsResp =
         await _connection.queryPastPurchases(applicationUserName: appUserName);
     return purchaseDetailsResp.pastPurchases;
   }
@@ -229,7 +229,7 @@ class PayUtil {
       {ValueSetter<List<String>> notFoundIds}) async {
     assert(productIds != null, '产品Id列表不能为null');
     assert(_isAvailable, '支付平台未准备好');
-    final productDetailsResponse =
+    final ProductDetailsResponse productDetailsResponse =
         await _connection.queryProductDetails(productIds.toSet());
     if (productDetailsResponse.error != null) {
       ///查询出错
@@ -249,6 +249,20 @@ class PayUtil {
 }
 
 class PayParams {
+  PayParams.wechat({
+    @required this.appId,
+    @required this.partnerId,
+    @required this.prepayId,
+    @required this.packageValue,
+    @required this.nonceStr,
+    @required this.timeStamp,
+    @required this.sign,
+  });
+
+  PayParams.ali({@required this.orderInfo});
+
+  PayParams.ios({@required this.productId});
+
   ///支付宝
   String orderInfo;
 
@@ -263,18 +277,4 @@ class PayParams {
 
   ///ios
   String productId;
-
-  PayParams.wechat({
-    @required this.appId,
-    @required this.partnerId,
-    @required this.prepayId,
-    @required this.packageValue,
-    @required this.nonceStr,
-    @required this.timeStamp,
-    @required this.sign,
-  });
-
-  PayParams.ali({@required this.orderInfo});
-
-  PayParams.ios({@required this.productId});
 }

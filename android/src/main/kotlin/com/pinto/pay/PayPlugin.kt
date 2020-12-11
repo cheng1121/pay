@@ -2,7 +2,7 @@ package com.pinto.pay
 
 import android.app.Activity
 import android.content.Context
-import androidx.annotation.NonNull;
+import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -33,7 +33,7 @@ public class PayPlugin : FlutterPlugin, MethodCallHandler,ActivityAware {
 
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "com.pinto.plugin/pay")
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.pinto.plugin/pay")
         channel.setMethodCallHandler(this)
 
     }

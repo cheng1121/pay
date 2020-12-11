@@ -5,8 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import com.alipay.sdk.app.PayTask
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.*
 import java.lang.Exception
 

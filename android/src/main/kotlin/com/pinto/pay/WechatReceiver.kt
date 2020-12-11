@@ -21,7 +21,7 @@ abstract class WechatReceiver: BroadcastReceiver() {
     companion object {
 
         private  val ACTION_WECHAT_RESP ="${WechatReceiver::class.java.`package`}.action.WECHAT_RESP"
-        private val KEY_WECHAT_RESP = "wechat_resp"
+        private const val KEY_WECHAT_RESP = "wechat_resp"
 
 
         @JvmStatic
@@ -49,7 +49,9 @@ abstract class WechatReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
       if(TextUtils.equals(ACTION_WECHAT_RESP, intent?.action)){
          val resp = intent!!.getParcelableExtra<Intent>(KEY_WECHAT_RESP)
-          handleIntent(resp)
+          if (resp != null) {
+              handleIntent(resp)
+          }
       }
     }
 
