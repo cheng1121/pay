@@ -2,10 +2,10 @@ package com.pinto.pay
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import com.alipay.sdk.app.PayTask
-import kotlinx.coroutines.*
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
 import java.lang.Exception
 
 /**
@@ -19,7 +19,7 @@ class Ali(private val activity: Activity, private val channel: MethodChannel) {
 
 
     @SuppressLint("PackageManagerGetSignatures")
-    fun isAlipayInstalled(call: MethodCall, result: MethodChannel.Result) {
+    fun isAlipayInstalled(result: MethodChannel.Result) {
         var isAlipayInstalled = false
         try {
             val packageManager = activity.packageManager
@@ -35,25 +35,20 @@ class Ali(private val activity: Activity, private val channel: MethodChannel) {
     }
 
 
-    private suspend fun doPayTask(orderInfo: String, isShowLoading: Boolean): Map<String, String> = withContext(Dispatchers.IO) {
-        val alipay = PayTask(activity)
-        alipay.payV2(orderInfo, isShowLoading) ?: mapOf<String, String>()
-
-    }
-
     fun aliPay(call: MethodCall, result: MethodChannel.Result) {
-        ///创建一个协程
-        GlobalScope.launch {
-            val orderInfo = call.argument<String>("orderInfo") as String
-            val isShowLoading = call.argument<Boolean>("isShowLoading") as Boolean
-            val payResult = doPayTask(orderInfo, isShowLoading)
-
-
-            withContext(Dispatchers.Main){
-                println("pay result =========${payResult}")
-                channel.invokeMethod("onAliPayResp", payResult)
-            }
-        }
+        val orderInfo = call.argument<String>("orderInfo") as String
+        val isShowLoading = call.argument<Boolean>("isShowLoading") as Boolean
+        Thread(
+                Runnable {
+                    val alipay = PayTask(activity)
+                    val payResult = alipay.payV2(orderInfo, isShowLoading)
+                            ?: mapOf<String, String>()
+                    activity.runOnUiThread {
+                        println("pay result =========${payResult}")
+                        channel.invokeMethod("onAliPayResp", payResult)
+                    }
+                }
+        ).start()
 
         result.success(null)
 

@@ -1,7 +1,6 @@
 package com.pinto.pay
 
 import android.app.Activity
-import android.content.Context
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -53,7 +52,7 @@ public class PayPlugin : FlutterPlugin, MethodCallHandler,ActivityAware {
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         when (call.method) {
-            "isAlipayInstalled" -> ali.isAlipayInstalled(call,result)
+            "isAlipayInstalled" -> ali.isAlipayInstalled(result)
             "aliPay" -> ali.aliPay(call, result)
             "wechatPay" -> wechat.wechatPay(call, result)
             "wechatInit" -> wechat.wechatInit(call,result)
